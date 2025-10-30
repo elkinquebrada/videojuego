@@ -1,422 +1,220 @@
+# player.py
 import pygame
+import os
 import math
 
-# Colores para el personaje detallado
-GRIS_OSCURO = (60, 60, 65)
-MARRON = (101, 67, 33)
-MARRON_BOTA = (61, 43, 31)
-MARRON_MANGO = (76, 47, 28)
-PIEL = (255, 220, 177)
-NEGRO = (30, 30, 30)
-GRIS_HACHA = (128, 138, 145)
-GRIS_METAL_OSCURO = (90, 95, 100)
+# --- VARIABLES DE CONFIGURACIÓN ---
+SCALE_FACTOR = 0.15 
+AXE_GRAY = (128, 138, 145)
 
-class Hacha:
+# -------------------------------------------------------------
+# --- AXE CLASS (Placeholder) ---
+class Axe:
     def __init__(self):
-        self.angulo_ataque = 0
-        self.atacando = False
-        self.frame_ataque = 0
-        
-    def dibujar(self, surface, x, y, direccion, atacando, frame_ataque, scale=1.0):
-        """Dibuja el hacha en la mano del personaje con escala"""
-        if direccion == 'frente':
-            if atacando:
-                angulo = -45 + (frame_ataque * 15)
-                hacha_x = x + 15 * scale
-                hacha_y = y - 5 * scale - frame_ataque * 2 * scale
-            else:
-                angulo = -45
-                hacha_x = x + 15 * scale
-                hacha_y = y
-            self.dibujar_hacha_lado(surface, hacha_x, hacha_y, angulo, False, scale)
-            
-        elif direccion == 'atras':
-            if atacando:
-                angulo = -45 + (frame_ataque * 15)
-                hacha_x = x - 15 * scale
-                hacha_y = y - 5 * scale - frame_ataque * 2 * scale
-            else:
-                angulo = -45
-                hacha_x = x - 15 * scale
-                hacha_y = y
-            self.dibujar_hacha_lado(surface, hacha_x, hacha_y, angulo, True, scale)
-            
-        elif direccion == 'derecha':
-            if atacando:
-                angulo = -90 - (frame_ataque * 20)
-                hacha_x = x + 12 * scale
-                hacha_y = y - frame_ataque * 3 * scale
-            else:
-                angulo = -90
-                hacha_x = x + 12 * scale
-                hacha_y = y
-            self.dibujar_hacha_horizontal(surface, hacha_x, hacha_y, angulo, scale)
-            
-        elif direccion == 'izquierda':
-            if atacando:
-                angulo = 90 + (frame_ataque * 20)
-                hacha_x = x - 12 * scale
-                hacha_y = y - frame_ataque * 3 * scale
-            else:
-                angulo = 90
-                hacha_x = x - 12 * scale
-                hacha_y = y
-            self.dibujar_hacha_horizontal(surface, hacha_x, hacha_y, angulo, scale)
+        self.attack_angle = 0
     
-    def dibujar_hacha_lado(self, surface, x, y, angulo, flip, scale):
-        largo_mango = 35 * scale
-        x_fin = x + largo_mango * math.cos(math.radians(angulo))
-        y_fin = y + largo_mango * math.sin(math.radians(angulo))
-        pygame.draw.line(surface, MARRON_MANGO, (x, y), (x_fin, y_fin), max(1, int(4 * scale)))
-        
-        x_hacha = x_fin
-        y_hacha = y_fin
-        
-        puntos = [
-            (x_hacha - 3 * scale, y_hacha - 8 * scale),
-            (x_hacha - 10 * scale, y_hacha - 4 * scale),
-            (x_hacha - 12 * scale, y_hacha),
-            (x_hacha - 10 * scale, y_hacha + 4 * scale),
-            (x_hacha - 3 * scale, y_hacha + 8 * scale),
-            (x_hacha + 2 * scale, y_hacha + 4 * scale),
-            (x_hacha + 2 * scale, y_hacha - 4 * scale)
-        ]
-        
-        puntos_rotados = []
-        for px, py in puntos:
-            px_temp = px - x_hacha
-            py_temp = py - y_hacha
-            angulo_rad = math.radians(angulo)
-            px_rot = px_temp * math.cos(angulo_rad) - py_temp * math.sin(angulo_rad)
-            py_rot = px_temp * math.sin(angulo_rad) + py_temp * math.cos(angulo_rad)
-            puntos_rotados.append((px_rot + x_hacha, py_rot + y_hacha))
-        
-        pygame.draw.polygon(surface, GRIS_HACHA, puntos_rotados)
-        pygame.draw.polygon(surface, GRIS_METAL_OSCURO, puntos_rotados, max(1, int(2 * scale)))
-    
-    def dibujar_hacha_horizontal(self, surface, x, y, angulo, scale):
-        largo_mango = 35 * scale
-        x_fin = x + largo_mango * math.cos(math.radians(angulo))
-        y_fin = y + largo_mango * math.sin(math.radians(angulo))
-        pygame.draw.line(surface, MARRON_MANGO, (x, y), (x_fin, y_fin), max(1, int(4 * scale)))
-        
-        x_hacha = x_fin
-        y_hacha = y_fin
-        
-        puntos = [
-            (x_hacha - 8 * scale, y_hacha - 3 * scale),
-            (x_hacha - 4 * scale, y_hacha - 10 * scale),
-            (x_hacha, y_hacha - 12 * scale),
-            (x_hacha + 4 * scale, y_hacha - 10 * scale),
-            (x_hacha + 8 * scale, y_hacha - 3 * scale),
-            (x_hacha + 4 * scale, y_hacha + 2 * scale),
-            (x_hacha - 4 * scale, y_hacha + 2 * scale)
-        ]
-        
-        puntos_rotados = []
-        for px, py in puntos:
-            px_temp = px - x_hacha
-            py_temp = py - y_hacha
-            angulo_rad = math.radians(angulo)
-            px_rot = px_temp * math.cos(angulo_rad) - py_temp * math.sin(angulo_rad)
-            py_rot = px_temp * math.sin(angulo_rad) + py_temp * math.cos(angulo_rad)
-            puntos_rotados.append((px_rot + x_hacha, py_rot + y_hacha))
-        
-        pygame.draw.polygon(surface, GRIS_HACHA, puntos_rotados)
-        pygame.draw.polygon(surface, GRIS_METAL_OSCURO, puntos_rotados, max(1, int(2 * scale)))
+    def draw(self, surface, x, y, direction, is_attacking, attack_frame):
+        if is_attacking:
+            color = AXE_GRAY if attack_frame % 5 < 3 else (255, 0, 0)
+            pygame.draw.circle(surface, color, (int(x + 20), int(y - 20)), 10)
 
-# Clase para el jugador (Jaime) con perspectiva 2.5D y diseño detallado
-class Player:
-    def __init__(self):
-        self.x = 400
-        self.y = 400
-        self.z = 0
-        self.width = 40
-        self.height = 60
-        self.vel_x = 0
-        self.vel_z = 0
-        self.vel_y = 0
-        self.jumping = False
-        self.facing_right = True
-        self.direccion = 'frente'
-        self.animation_frame = 0
-        self.animation_timer = 0
-        self.health = 100
-        self.stamina = 100
-        self.hacha = Hacha()
-        self.atacando = False
-        self.frame_ataque = 0
-        self.duracion_ataque = 10
+class TavernPlayer(pygame.sprite.Sprite):
+    def __init__(self, x, y, manager_width, manager_height): 
+        super().__init__()
         
-    def update(self, keys, WIDTH, HEIGHT):
-        # Actualizar ataque
-        if self.atacando:
-            self.frame_ataque += 1
-            if self.frame_ataque >= self.duracion_ataque:
-                self.atacando = False
-                self.frame_ataque = 0
+        # Las variables manager_width/height se ignoran aquí, pero se mantienen para no romper el constructor de las escenas
+        self.speed = 200     
+        self.depth_speed_factor = 0.5 
+
+        self.x = float(x)
+        self.y = float(y)
+        self.direction = 'front'
+        self.is_walking = False
+        self.is_attacking = False
         
-        # Movimiento (bloqueado durante ataque)
-        if not self.atacando:
-            self.vel_x = 0
-            self.vel_z = 0
+        self.animation_speed = 0.2 
+        self.attack_duration = 10 
+        self.attack_frame = 0
+        self.axe = Axe()
+        
+        self.animations = self._load_animations()
+        self.current_animation_key = 'front_idle'
+        self.animation_step = 0.0
+        
+        self.image = self.animations[self.current_animation_key][0]
+        self.rect = self.image.get_rect(midbottom=(int(self.x), int(self.y))) 
+        
+    def get_scale(self, floor_y_min, floor_y_max):
+        # ... (código de escalado 2.5D) ...
+        min_scale = 0.6
+        max_scale = 0.9
+        y_range = max(1, floor_y_max - floor_y_min)
+        y_normalized = (self.y - floor_y_min) / y_range
+        y_normalized = max(0.0, min(1.0, y_normalized)) 
+        return min_scale + y_normalized * (max_scale - min_scale)
+
+    def _load_animations(self):
+        """
+        Loads all sprite images, SCALING them by SCALE_FACTOR using smoothscale.
+        """
+        animations = {}
+        base_path = 'assets'
+        
+        def scale_image(image):
+            """Helper to scale a single image using smoothscale."""
+            new_width = int(image.get_width() * SCALE_FACTOR)
+            new_height = int(image.get_height() * SCALE_FACTOR)
+            # Usando smoothscale para mejor calidad
+            return pygame.transform.smoothscale(image, (new_width, new_height))
+
+        def load_walk_sequence(folder_name, count):
+            """Loads numbered files (1.png to N.png) from a subfolder and scales."""
+            frames = []
+            folder_path = os.path.join(base_path, folder_name)
+            for i in range(1, count + 1):
+                file_path = os.path.join(folder_path, f'{i}.png')
+                try:
+                    image = pygame.image.load(file_path).convert_alpha()
+                    image = scale_image(image)
+                    frames.append(image)
+                except pygame.error:
+                    print(f"Warning: Missing sprite {file_path}. Using placeholder.")
+                    placeholder = pygame.Surface((30, 60), pygame.SRCALPHA)
+                    placeholder.fill((255, 0, 255, 100)) 
+                    placeholder = scale_image(placeholder)
+                    frames.append(placeholder)
+            return frames
+        
+        # --- IDLE (Front) ---
+        front_idle_path = os.path.join(base_path, 'Idle', 'Front.png')
+        try:
+            front_idle_image = pygame.image.load(front_idle_path).convert_alpha()
+            front_idle_image = scale_image(front_idle_image)
+        except pygame.error:
+            print(f"ERROR: Missing Front Idle sprite at {front_idle_path}. Using placeholder.")
+            front_idle_image = pygame.Surface((30, 60), pygame.SRCALPHA)
+            front_idle_image.fill((0, 0, 255, 150))
+            front_idle_image = scale_image(front_idle_image)
             
+        animations['front_idle'] = [front_idle_image]
+        
+        # --- IDLE (Back) ---
+        back_idle_path = os.path.join(base_path, 'Idle', 'Back.png')
+        try:
+            back_idle_image = pygame.image.load(back_idle_path).convert_alpha()
+            back_idle_image = scale_image(back_idle_image)
+        except pygame.error:
+            print(f"ERROR: Missing Back Idle sprite at {back_idle_path}. Using front_idle fallback.")
+            back_idle_image = front_idle_image 
+
+        # --- IDLE (Right/Left) ---
+        right_left_idle_path = os.path.join(base_path, 'Idle', 'Right_Left.png')
+        try:
+            right_idle_image = pygame.image.load(right_left_idle_path).convert_alpha()
+            right_idle_image = scale_image(right_idle_image)
+        except pygame.error:
+            print(f"ERROR: Missing Right/Left Idle sprite at {right_left_idle_path}. Using front_idle placeholder.")
+            right_idle_image = front_idle_image 
+            
+        # ------------------------------------------------
+        # --- SECCIONES DE WALK CORREGIDAS Y AÑADIDAS ---
+        # ------------------------------------------------
+            
+        # --- WALK (Right/Left - 16 Frames) ---
+        walk_frames_right = load_walk_sequence('Right_Left_Walk', 16)
+        animations['right_walk'] = walk_frames_right
+        animations['left_walk'] = [pygame.transform.flip(f, True, False) for f in walk_frames_right]
+        
+        # --- WALK (Front - Asumiendo 12 Frames) ---
+        # Si tienes más o menos frames, cambia el número '12' aquí.
+        walk_frames_front = load_walk_sequence('Front_Walk', 12) 
+        animations['front_walk'] = walk_frames_front
+        
+        # --- WALK (Back - Usando placeholder por ahora, si no tienes sprites Back_Walk) ---
+        # Si tienes una carpeta 'Back_Walk' con sprites, usa: load_walk_sequence('Back_Walk', N)
+        placeholder_walk_frame = walk_frames_front[0] if walk_frames_front else front_idle_image 
+        animations['back_walk'] = [placeholder_walk_frame] * 4 
+
+        # --- ANIMACIONES ESTÁTICAS FINALES ---
+        animations['back_idle'] = [back_idle_image] 
+        animations['right_idle'] = [right_idle_image] 
+        animations['left_idle'] = [pygame.transform.flip(right_idle_image, True, False)]
+        
+        # --- ATTACK PLACEHOLDERS ---
+        placeholder_attack = [front_idle_image] * self.attack_duration
+        animations['front_attack'] = placeholder_attack
+        animations['back_attack'] = placeholder_attack
+        animations['right_attack'] = placeholder_attack
+        animations['left_attack'] = placeholder_attack
+        
+        return animations
+    def attack(self):
+        if not self.is_attacking:
+            self.is_attacking = True
+            self.attack_frame = 0
+            self.animation_step = 0.0
+
+    # === MÉTODO UPDATE CORREGIDO: SOLO RECIBE DT Y LÍMITES ===
+    def update(self, dt, floor_y_min, floor_y_max, wall_left_x, wall_right_x):
+        keys = pygame.key.get_pressed() # <--- El jugador obtiene las teclas internamente
+        
+        # Ataque
+        if self.is_attacking:
+            self.attack_frame += 1
+            if self.attack_frame >= self.attack_duration:
+                self.is_attacking = False
+                self.attack_frame = 0
+        
+        self.is_walking = False
+        
+        # Movimiento
+        if not self.is_attacking:
+            move_x, move_y = 0, 0
+            
+            # La lógica de movimiento usa las teclas obtenidas localmente
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                self.vel_x = -4
-                self.facing_right = False
-                self.direccion = 'izquierda'
+                move_x -= self.speed; self.direction = 'left'; self.is_walking = True
             if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                self.vel_x = 4
-                self.facing_right = True
-                self.direccion = 'derecha'
-                
+                move_x += self.speed; self.direction = 'right'; self.is_walking = True
             if keys[pygame.K_UP] or keys[pygame.K_w]:
-                self.vel_z = -3
-                self.direccion = 'atras'
-                if self.stamina > 0:
-                    self.stamina -= 0.3
+                move_y -= self.speed * self.depth_speed_factor; self.direction = 'back'; self.is_walking = True
             if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-                self.vel_z = 3
-                self.direccion = 'frente'
+                move_y += self.speed * self.depth_speed_factor; self.direction = 'front'; self.is_walking = True
                 
-            # Salto
-            if keys[pygame.K_SPACE] and not self.jumping:
-                self.vel_y = -15
-                self.jumping = True
+            self.x += move_x * dt
+            self.y += move_y * dt
         
-        # Gravedad
-        self.vel_y += 0.8
-        if self.vel_y > 12:
-            self.vel_y = 12
-            
-        # Actualizar posición
-        self.x += self.vel_x
-        self.z += self.vel_z
-        self.y += self.vel_y
+        # Colisión y Límites
+        self.x = max(wall_left_x, min(self.x, wall_right_x))
+        self.y = max(floor_y_min, min(self.y, floor_y_max))
         
-        # Colisión con el suelo
-        ground_y = 350 + self.z * 0.4
-        if self.y >= ground_y:
-            self.y = ground_y
-            self.vel_y = 0
-            self.jumping = False
-            
-        # Límites del mundo
-        if self.x < 100:
-            self.x = 100
-        if self.x > WIDTH - 100:
-            self.x = WIDTH - 100
-        if self.z < -50:
-            self.z = -50
-        if self.z > 300:
-            self.z = 300
-            
-        # Recuperación de stamina
-        if self.stamina < 100:
-            self.stamina += 0.2
-            
         # Animación
-        if self.vel_x != 0 or self.vel_z != 0:
-            self.animation_timer += 1
-            if self.animation_timer > 5:
-                self.animation_frame = (self.animation_frame + 1) % 4
-                self.animation_timer = 0
-    
-    def atacar(self):
-        """Inicia el ataque con el hacha"""
-        if not self.atacando:
-            self.atacando = True
-            self.frame_ataque = 0
-                
-    def get_scale(self):
-        return 1.0 + (self.z * 0.003)
-        
-    def get_screen_y(self):
-        return self.y - self.z * 0.3
-    
-    def dibujar_personaje(self, surface, x, y, scale):
-        """Dibuja el personaje detallado según su dirección"""
-        offset_pierna = math.sin(self.animation_frame * 0.5) * 3 * scale if (self.vel_x != 0 or self.vel_z != 0) else 0
-        brazo_offset = math.sin(self.animation_frame * 0.5) * 2 * scale if (self.vel_x != 0 or self.vel_z != 0) else 0
-        
-        if self.direccion == 'frente':
-            self.dibujar_frente(surface, x, y, scale, offset_pierna, brazo_offset)
-        elif self.direccion == 'atras':
-            self.dibujar_atras(surface, x, y, scale, offset_pierna, brazo_offset)
-        elif self.direccion == 'izquierda':
-            self.dibujar_lado(surface, x, y, scale, offset_pierna, brazo_offset, True)
-        elif self.direccion == 'derecha':
-            self.dibujar_lado(surface, x, y, scale, offset_pierna, brazo_offset, False)
-    
-    def dibujar_frente(self, surface, x, y, scale, offset_pierna, brazo_offset):
-        # Piernas
-        pygame.draw.rect(surface, MARRON, (x - 8*scale, y + 15*scale - offset_pierna, 7*scale, 18*scale))
-        pygame.draw.ellipse(surface, MARRON_BOTA, (x - 9*scale, y + 30*scale - offset_pierna, 9*scale, 8*scale))
-        pygame.draw.rect(surface, MARRON, (x + 1*scale, y + 15*scale + offset_pierna, 7*scale, 18*scale))
-        pygame.draw.ellipse(surface, MARRON_BOTA, (x, y + 30*scale + offset_pierna, 9*scale, 8*scale))
-        
-        # Torso
-        pygame.draw.rect(surface, GRIS_OSCURO, (x - 12*scale, y - 5*scale, 24*scale, 22*scale))
-        
-        # Brazo izquierdo
-        pygame.draw.rect(surface, GRIS_OSCURO, (x - 15*scale, y - 3*scale - brazo_offset, 6*scale, 16*scale))
-        pygame.draw.ellipse(surface, PIEL, (x - 16*scale, y + 11*scale - brazo_offset, 7*scale, 7*scale))
-        
-        # Brazo derecho
-        pygame.draw.rect(surface, GRIS_OSCURO, (x + 9*scale, y - 3*scale, 6*scale, 16*scale))
-        pygame.draw.ellipse(surface, PIEL, (x + 9*scale, y + 11*scale, 7*scale, 7*scale))
-        
-        # Hacha
-        self.hacha.dibujar(surface, x, y, self.direccion, self.atacando, self.frame_ataque, scale)
-        
-        # Cuello
-        pygame.draw.rect(surface, PIEL, (x - 3*scale, y - 8*scale, 6*scale, 5*scale))
-        
-        # Cabeza
-        pygame.draw.ellipse(surface, PIEL, (x - 8*scale, y - 20*scale, 16*scale, 18*scale))
-        pygame.draw.ellipse(surface, NEGRO, (x - 9*scale, y - 22*scale, 18*scale, 12*scale))
-        for i in range(4):
-            pygame.draw.circle(surface, NEGRO, (int(x - 7*scale + i * 5*scale), int(y - 18*scale)), max(1, int(3*scale)))
-        
-        # Cara
-        pygame.draw.ellipse(surface, NEGRO, (x - 4*scale, y - 13*scale, 2*scale, 3*scale))
-        pygame.draw.ellipse(surface, NEGRO, (x + 2*scale, y - 13*scale, 2*scale, 3*scale))
-    
-    def dibujar_atras(self, surface, x, y, scale, offset_pierna, brazo_offset):
-        # Piernas
-        pygame.draw.rect(surface, MARRON, (x - 8*scale, y + 15*scale, 7*scale, 18*scale))
-        pygame.draw.ellipse(surface, MARRON_BOTA, (x - 9*scale, y + 30*scale, 9*scale, 8*scale))
-        pygame.draw.rect(surface, MARRON, (x + 1*scale, y + 15*scale - offset_pierna, 7*scale, 18*scale))
-        pygame.draw.ellipse(surface, MARRON_BOTA, (x, y + 30*scale - offset_pierna, 9*scale, 8*scale))
-        
-        # Torso
-        pygame.draw.rect(surface, GRIS_OSCURO, (x - 12*scale, y - 5*scale, 24*scale, 22*scale))
-        
-        # Brazo izquierdo
-        pygame.draw.rect(surface, GRIS_OSCURO, (x - 15*scale, y - 3*scale + brazo_offset, 6*scale, 16*scale))
-        pygame.draw.ellipse(surface, PIEL, (x - 16*scale, y + 11*scale + brazo_offset, 7*scale, 7*scale))
-        
-        # Hacha
-        self.hacha.dibujar(surface, x, y, self.direccion, self.atacando, self.frame_ataque, scale)
-        
-        # Brazo derecho
-        pygame.draw.rect(surface, GRIS_OSCURO, (x + 9*scale, y - 3*scale, 6*scale, 16*scale))
-        pygame.draw.ellipse(surface, PIEL, (x + 9*scale, y + 11*scale, 7*scale, 7*scale))
-        
-        # Cuello
-        pygame.draw.rect(surface, PIEL, (x - 3*scale, y - 8*scale, 6*scale, 5*scale))
-        
-        # Cabeza
-        pygame.draw.ellipse(surface, PIEL, (x - 8*scale, y - 20*scale, 16*scale, 18*scale))
-        pygame.draw.ellipse(surface, NEGRO, (x - 9*scale, y - 22*scale, 18*scale, 12*scale))
-        for i in range(4):
-            pygame.draw.circle(surface, NEGRO, (int(x - 7*scale + i * 5*scale), int(y - 18*scale)), max(1, int(3*scale)))
-    
-    def dibujar_lado(self, surface, x, y, scale, offset_pierna, brazo_offset, flip):
-        m = -1 if flip else 1
-        
-        # Pierna trasera
-        pygame.draw.rect(surface, MARRON, (x - 3*scale*m, y + 15*scale - offset_pierna, 7*scale, 18*scale))
-        pygame.draw.ellipse(surface, MARRON_BOTA, (x - 3*scale*m, y + 30*scale - offset_pierna, 9*scale, 8*scale))
-        
-        # Torso
-        pygame.draw.rect(surface, GRIS_OSCURO, (x - 8*scale*m, y - 5*scale, 16*scale, 22*scale))
-        
-        # Brazo trasero
-        pygame.draw.rect(surface, GRIS_OSCURO, (x - 2*scale*m, y - 2*scale - brazo_offset, 6*scale, 16*scale))
-        pygame.draw.ellipse(surface, PIEL, (x - 2*scale*m, y + 12*scale - brazo_offset, 6*scale, 6*scale))
-        
-        # Pierna delantera
-        pygame.draw.rect(surface, MARRON, (x - 3*scale*m, y + 15*scale + offset_pierna, 7*scale, 18*scale))
-        pygame.draw.ellipse(surface, MARRON_BOTA, (x - 3*scale*m, y + 30*scale + offset_pierna, 9*scale, 8*scale))
-        
-        # Brazo delantero
-        pygame.draw.rect(surface, GRIS_OSCURO, (x + 5*scale*m, y - 2*scale, 6*scale, 16*scale))
-        pygame.draw.ellipse(surface, PIEL, (x + 5*scale*m, y + 12*scale, 6*scale, 6*scale))
-        
-        # Hacha
-        self.hacha.dibujar(surface, x, y, self.direccion, self.atacando, self.frame_ataque, scale)
-        
-        # Cuello
-        pygame.draw.rect(surface, PIEL, (x - 2*scale*m, y - 8*scale, 6*scale, 5*scale))
-        
-        # Cabeza
-        pygame.draw.ellipse(surface, PIEL, (x - 8*scale*m, y - 20*scale, 16*scale, 18*scale))
-        pygame.draw.ellipse(surface, NEGRO, (x - 9*scale*m, y - 22*scale, 18*scale, 12*scale))
-        for i in range(3):
-            pygame.draw.circle(surface, NEGRO, (int(x - 6*scale*m + i * 4*scale*m), int(y - 17*scale)), max(1, int(3*scale)))
-        
-        # Cara perfil
-        pygame.draw.ellipse(surface, NEGRO, (x + 2*scale*m, y - 13*scale, 2*scale, 3*scale))
-        
-    def draw(self, surface):
-        scale = self.get_scale()
-        screen_y = self.get_screen_y()
-        
-        # Sombra
-        shadow_size = int((40 + 20) * (1 + self.z * 0.002) * scale)
-        shadow_surf = pygame.Surface((shadow_size, 15), pygame.SRCALPHA)
-        alpha = max(30, 100 - int(self.z * 0.3))
-        pygame.draw.ellipse(shadow_surf, (0, 0, 0, alpha), shadow_surf.get_rect())
-        ground_y = 350 + self.z * 0.4
-        surface.blit(shadow_surf, (int(self.x - shadow_size//2), int(ground_y + 30*scale)))
-        
-        # Dibujar personaje detallado
-        self.dibujar_personaje(surface, self.x, screen_y, scale)
-
-
-# Funciones de UI relacionadas con el jugador
-class PlayerUI:
-    def __init__(self, font_small, font_medium):
-        self.font_small = font_small
-        self.font_medium = font_medium
-        
-    def draw_health_bar(self, surface, x, y, current, maximum, label=""):
-        width = 220
-        height = 35
-        
-        UI_BORDER = (80, 70, 90)
-        UI_TEXT = (200, 190, 180)
-        
-        pygame.draw.rect(surface, (40, 30, 35), (x, y, width, height))
-        pygame.draw.rect(surface, UI_BORDER, (x, y, width, height), 3)
-        
-        fill_width = int((current / maximum) * (width - 6))
-        if current > 60:
-            color = (80, 150, 80)
-        elif current > 30:
-            color = (180, 150, 60)
+        if self.is_walking or self.is_attacking:
+            self.animation_step += self.animation_speed 
         else:
-            color = (180, 60, 60)
+            self.animation_step = 0.0
+
+        state = 'attack' if self.is_attacking else ('walk' if self.is_walking else 'idle')
+        self.current_animation_key = f'{self.direction}_{state}'
+
+        frames = self.animations.get(self.current_animation_key, self.animations['front_idle'])
+        num_frames = len(frames)
+        frame_index = int(self.animation_step) % num_frames if not self.is_attacking else self.attack_frame
+        frame_index = min(frame_index, num_frames - 1)
         
-        pygame.draw.rect(surface, color, (x + 3, y + 3, fill_width, height - 6))
-        pygame.draw.rect(surface, tuple(min(255, c + 40) for c in color), 
-                        (x + 3, y + 3, fill_width, height // 2 - 1))
+        # Aplicar Escala 2.5D y Actualizar Rect
+        current_scale = self.get_scale(floor_y_min, floor_y_max)
+        base_image = frames[frame_index]
         
-        if label:
-            text = self.font_small.render(f"{label}: {int(current)}/{maximum}", True, UI_TEXT)
-            surface.blit(text, (x + width + 10, y + 5))
-    
-    def draw_minimap(self, surface, player, trees, WIDTH, HEIGHT, draw_panel_func):
-        x, y = WIDTH - 330, 30
-        size = 300
+        scaled_width = int(base_image.get_width() * current_scale)
+        scaled_height = int(base_image.get_height() * current_scale)
         
-        draw_panel_func(surface, x, y, size, size, "Mapa")
-        
-        map_area = pygame.Surface((size - 30, size - 90), pygame.SRCALPHA)
-        map_area.fill((15, 20, 25, 200))
-        
-        scale_x = (size - 30) / WIDTH
-        scale_z = (size - 90) / 400
-        
-        for tree in trees:
-            tree_x = int(tree.x * scale_x)
-            tree_z = int((tree.z + 50) * scale_z)
-            pygame.draw.circle(map_area, (40, 60, 40), (tree_x, tree_z), 4)
-        
-        player_x = int(player.x * scale_x)
-        player_z = int((player.z + 50) * scale_z)
-        pygame.draw.circle(map_area, (200, 80, 80), (player_x, player_z), 7)
-        pygame.draw.circle(map_area, (255, 120, 120), (player_x, player_z), 4)
-        
-        surface.blit(map_area, (x + 15, y + 75))
+        self.image = pygame.transform.smoothscale(base_image, (scaled_width, scaled_height))
+        self.rect = self.image.get_rect(midbottom=(int(self.x), int(self.y))) 
+
+
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)
+        if self.is_attacking:
+            self.axe.draw(surface, self.x, self.rect.centery, self.direction, 
+                          self.is_attacking, self.attack_frame)
